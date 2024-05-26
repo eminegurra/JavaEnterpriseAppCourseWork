@@ -33,4 +33,16 @@ public class PersonService {
         }
         return isSaved;
     }
+
+    public boolean createNewLecturer(Person person) {
+        try {
+            Roles lecturerRole = rolesRepository.getByRoleName(EazySchoolConstants.LECTURER_ROLE);
+            person.setRoles(lecturerRole);
+            person.setPwd(passwordEncoder.encode(person.getPwd()));
+            personRepository.save(person);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

@@ -104,3 +104,16 @@ ALTER TABLE person ADD COLUMN profile_picture_url VARCHAR(255);
 ALTER TABLE courses
 ADD COLUMN image_url VARCHAR(255),
 ADD COLUMN description VARCHAR(600);
+
+CREATE TABLE IF NOT EXISTS `course_documents` (
+  `document_id` int NOT NULL AUTO_INCREMENT,
+  `course_id` int NOT NULL,
+  `file_name` varchar(255) NOT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `uploaded_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`document_id`),
+  FOREIGN KEY (`course_id`) REFERENCES `courses`(`course_id`)
+);
+
+
+ALTER TABLE courses ADD COLUMN lecturer_id INT NULL;

@@ -14,8 +14,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import com.eazybytes.eazyschool.service.PersonService;
+import com.eazybytes.eazyschool.repository.RolesRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,8 +42,15 @@ public class AdminController {
 
     @Autowired
     CoursesRepository coursesRepository;
+    
+    @Autowired
+    PersonService personService;
+
+    @Autowired
+    private RolesRepository rolesRepository;
 
     private static final String UPLOAD_DIR = "C:\\Users\\User\\Desktop\\JavaEnterpriseAppCourseWork\\src\\main\\resources\\static\\assets\\images\\";
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
 
     @RequestMapping("/displayClasses")
@@ -209,4 +221,63 @@ public class AdminController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "/createLecturer", method = RequestMethod.POST)
+    public String createLecturer(@Valid @ModelAttribute("person") Person person, BindingResult result) {
+    logger.info("Entered createLecturer method");
+
+    if (result.hasErrors()) {
+        logger.error("Form validation errors: {}", result.getAllErrors());
+        return "lecturers"; // Return to the same page to display validation errors
+    }
+
+    logger.info("Attempting to create a new lecturer: {}", person);
+
+    boolean isSaved = personService.createNewLecturer(person);
+
+    if (isSaved) {
+        logger.info("Lecturer created successfully");
+        return "redirect:/admin/displayLecturers"; // Redirect to display the updated list of lecturers
+    } else {
+        logger.error("Failed to create lecturer");
+        return "lecturers"; // Return to the same page with an error message
+    }
+}
+  
+    @GetMapping("/displayLecturers")
+    public ModelAndView displayLecturers() {
+        ModelAndView modelAndView = new ModelAndView("lecturers");
+        Roles lecturerRole = rolesRepository.getByRoleName("LECTURER");
+
+        // Fetch the list of persons with the role of "LECTURER"
+        // List<Person> lecturers = personRepository.findByRoles(lecturerRole);
+        List<Person> lecturers = personRepository.findByRolesRoleName("LECTURER");
+
+        modelAndView.addObject("lecturers", lecturers);
+        modelAndView.addObject("person", new Person()); // Add this line
+        return modelAndView;
+    }
+    @GetMapping("/assignCourse")
+    public String showAssignCourseForm(Model model) {
+        List<Person> lecturers = personRepository.findByRolesRoleName("LECTURER");
+        List<Courses> courses = coursesRepository.findAll();
+        model.addAttribute("lecturers", lecturers);
+        model.addAttribute("courses", courses);
+        return "assign_course.html";
+    }
+
+    @PostMapping("/assignCourse")
+    public String assignCourseToLecturer(@RequestParam("lecturerId") int lecturerId, @RequestParam("courseId") int courseId) {
+        Optional<Person> lecturerOpt = personRepository.findById(lecturerId);
+        Optional<Courses> courseOpt = coursesRepository.findById(courseId);
+
+        if (lecturerOpt.isPresent() && courseOpt.isPresent()) {
+            Person lecturer = lecturerOpt.get();
+            Courses course = courseOpt.get();
+            lecturer.getCourses().add(course);
+            course.getPersons().add(lecturer);
+            personRepository.save(lecturer);
+            coursesRepository.save(course);
+        }
+        return "redirect:/admin/displayLecturers";
+    }
 }

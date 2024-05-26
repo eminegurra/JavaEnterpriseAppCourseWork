@@ -29,4 +29,11 @@ public class Courses extends BaseEntity{
     
     @ManyToMany(mappedBy = "courses", fetch = FetchType.EAGER,cascade = CascadeType.PERSIST)
     private Set<Person> persons = new HashSet<>();
+
+    @OneToMany(mappedBy = "courses", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<CourseDocuments> documents;
+    
+    public void setDocuments(Set<CourseDocuments> documents) {
+        this.documents = documents;
+    }
 }

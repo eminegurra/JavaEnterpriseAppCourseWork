@@ -2,6 +2,8 @@ package com.eazybytes.eazyschool.repository;
 
 import com.eazybytes.eazyschool.model.Courses;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;
 
@@ -23,4 +25,8 @@ public interface CoursesRepository extends JpaRepository<Courses, Integer> {
     sorts the results in the ascending order.
     * */
     List<Courses> findByOrderByName();
+
+
+    @Query("SELECT c FROM Courses c JOIN c.persons p WHERE p.personId = :personId")
+    List<Courses> findByPersonId(@Param("personId") int personId);
 }
