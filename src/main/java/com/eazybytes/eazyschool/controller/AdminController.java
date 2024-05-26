@@ -10,9 +10,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.http.HttpSession;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +37,9 @@ public class AdminController {
 
     @Autowired
     CoursesRepository coursesRepository;
+
+    private static final String UPLOAD_DIR = "C:\\Users\\User\\Desktop\\JavaEnterpriseAppCourseWork\\src\\main\\resources\\static\\assets\\images\\";
+
 
     @RequestMapping("/displayClasses")
     public ModelAndView displayClasses(Model model) {
@@ -104,7 +115,7 @@ public class AdminController {
         return modelAndView;
     }
 
-    @GetMapping("/displayCourses")
+ @GetMapping("/displayCourses")
     public ModelAndView displayCourses(Model model) {
         //List<Courses> courses = coursesRepository.findByOrderByNameDesc();
         List<Courses> courses = coursesRepository.findAll(Sort.by("name").descending());
@@ -115,9 +126,36 @@ public class AdminController {
     }
 
     @PostMapping("/addNewCourse")
-    public ModelAndView addNewCourse(Model model, @ModelAttribute("course") Courses course) {
+    public ModelAndView addNewCourse(Model model, @ModelAttribute("course") Courses course,
+                                     @RequestParam("image") MultipartFile file, HttpSession session) {
+        Person person = (Person) session.getAttribute("loggedInPerson");
+
         ModelAndView modelAndView = new ModelAndView();
-        coursesRepository.save(course);
+        if (!file.isEmpty()) {
+            try {
+                // Log file details
+                System.out.println("File name: " + file.getOriginalFilename());
+                System.out.println("File size: " + file.getSize());
+
+                // Get the filename
+                String filename = StringUtils.cleanPath(file.getOriginalFilename());
+
+                // Copy file to the target location
+                Path path = Paths.get(UPLOAD_DIR + filename);
+                Files.copy(file.getInputStream(), path);
+
+                // Set the profile picture URL in the Courses object
+                course.setImageUrl("/assets/images/" + filename); // Relative URL
+
+                // Log imageUrl value
+                System.out.println("Image URL: " + course.getImageUrl());
+            } catch (IOException e) {
+                e.printStackTrace(); // Handle error
+            }
+        }
+        Courses  savedCourse = coursesRepository.save(course);
+        session.setAttribute("loggedInPerson", savedCourse);
+
         modelAndView.setViewName("redirect:/admin/displayCourses");
         return modelAndView;
     }

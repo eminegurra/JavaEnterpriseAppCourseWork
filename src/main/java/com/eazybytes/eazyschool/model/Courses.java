@@ -22,6 +22,11 @@ public class Courses extends BaseEntity{
 
     private String fees;
 
+    @Column(length = 600)
+    private String description;
+
+    private String imageUrl;
+    
     @ManyToMany(mappedBy = "courses", fetch = FetchType.EAGER,cascade = CascadeType.PERSIST)
     private Set<Person> persons = new HashSet<>();
 }

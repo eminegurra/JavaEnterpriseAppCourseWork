@@ -55,7 +55,8 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form th:action="@{/admin/addNewCourse}" method="post" class="signin-form" th:object="${course}">
+                    <form th:action="@{/admin/addNewCourse}" method="post" class="signin-form" th:object="${course}" enctype="multipart/form-data">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <div class="modal-body">
                             <div class="input-grids">
                                 <label class="control-label" for="courseName">Course Name</label>
@@ -64,6 +65,11 @@
                                 <label class="control-label" for="fees">Fees</label>
                                 <input type="text" class="form-control" name="fees" id="fees" th:field="*{fees}"
                                        required placeholder="Enter fees">
+                                <label class="control-label" for="imageUrl">Course Image</label>
+                                <input type="file" class="form-control" name="image" id="image" accept="image/*" >
+                                  <label class="control-label" for="description">Description</label>
+                                <textarea class="form-control" name="description" id="description" th:field="*{description}" 
+                                        maxlength="600" required placeholder="Enter Description"></textarea>
                             </div>
                         </div>
                         <div class="modal-footer border-top-0 d-flex justify-content-center">
@@ -79,6 +85,8 @@
                 <th scope="col">Course ID</th>
                 <th scope="col">Course Name</th>
                 <th scope="col">Fees</th>
+                <th scope="col">Image</th>
+                <th scope="col">Desciption</th>
                 <th scope="col"></th>
             </tr>
             </thead>
@@ -87,6 +95,11 @@
                 <td th:text="${course.courseId}"></td>
                 <td th:text="${course.name}"></td>
                 <td th:text="${course.fees}"></td>
+                <td>
+                    <img th:src="@{${course.imageUrl}}" alt="Course Picture" style="max-width: 150px; max-height: 150px;" />
+                </td>
+                <td th:text="${course.description}"></td>
+
                 <td><a th:href="@{/admin/viewStudents(id=${course.courseId})}" class="btn btn-warning">VIEW STUDENTS</a></td>
             </tr>
             </tbody>

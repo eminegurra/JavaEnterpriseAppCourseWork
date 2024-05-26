@@ -100,3 +100,7 @@ CREATE TABLE IF NOT EXISTS `person_courses` (
   FOREIGN KEY (course_id) REFERENCES courses(course_id),
    PRIMARY KEY (`person_id`,`course_id`)
 );
+ALTER TABLE person ADD COLUMN profile_picture_url VARCHAR(255);
+ALTER TABLE courses
+ADD COLUMN image_url VARCHAR(255),
+ADD COLUMN description VARCHAR(600);
