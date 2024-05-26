@@ -39,4 +39,8 @@ public class Profile {
     @NotBlank(message="Zip Code must not be blank")
     @Pattern(regexp="(^$|[0-9]{5})",message = "Zip Code must be 5 digits")
     private String zipCode;
+
+    private String profilePictureUrl;
+
+    private String localProfilePicturePath;
 }

@@ -12,10 +12,17 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.util.StringUtils;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Slf4j
 @Controller("profileControllerBean")
@@ -23,6 +30,7 @@ public class ProfileController {
 
     @Autowired
     PersonRepository personRepository;
+    private static final String UPLOAD_DIR = "C:\\Users\\User\\Desktop\\JavaEnterpriseAppCourseWork\\src\\main\\resources\\static\\assets\\images\\";
 
     @RequestMapping("/displayProfile")
     public ModelAndView displayMessages(Model model, HttpSession session) {
@@ -31,30 +39,45 @@ public class ProfileController {
         profile.setName(person.getName());
         profile.setMobileNumber(person.getMobileNumber());
         profile.setEmail(person.getEmail());
-        if(person.getAddress() !=null && person.getAddress().getAddressId()>0){
+        if (person.getAddress() != null && person.getAddress().getAddressId() > 0) {
             profile.setAddress1(person.getAddress().getAddress1());
             profile.setAddress2(person.getAddress().getAddress2());
             profile.setCity(person.getAddress().getCity());
             profile.setState(person.getAddress().getState());
             profile.setZipCode(person.getAddress().getZipCode());
         }
+        profile.setProfilePictureUrl(person.getProfilePictureUrl()); // URL from  database  
         ModelAndView modelAndView = new ModelAndView("profile.html");
-        modelAndView.addObject("profile",profile);
+        modelAndView.addObject("profile", profile);
         return modelAndView;
     }
 
-    @PostMapping(value = "/updateProfile")
+        @PostMapping(value = "/updateProfile")
     public String updateProfile(@Valid @ModelAttribute("profile") Profile profile, Errors errors,
-            HttpSession session)
-    {
-        if(errors.hasErrors()){
+                                @RequestParam("profilePicture") MultipartFile file, HttpSession session) {
+        if (errors.hasErrors()) {
             return "profile.html";
         }
         Person person = (Person) session.getAttribute("loggedInPerson");
+
+        if (!file.isEmpty()) {
+            try {
+                // Get the filename
+                String filename = StringUtils.cleanPath(file.getOriginalFilename());
+                // Copy file to the target location
+                Path path = Paths.get(UPLOAD_DIR + filename);
+                Files.copy(file.getInputStream(), path);
+                // Set the profile picture URL in the person object
+                person.setProfilePictureUrl("/assets/images/" + filename); // Relative URL
+            } catch (IOException e) {
+                e.printStackTrace(); // Handle error
+            }
+        }
+
         person.setName(profile.getName());
         person.setEmail(profile.getEmail());
         person.setMobileNumber(profile.getMobileNumber());
-        if(person.getAddress() ==null || !(person.getAddress().getAddressId()>0)){
+        if (person.getAddress() == null || !(person.getAddress().getAddressId() > 0)) {
             person.setAddress(new Address());
         }
         person.getAddress().setAddress1(profile.getAddress1());
